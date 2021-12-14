@@ -28,3 +28,11 @@ curl -X "POST" "http://localhost:5000/api/v1/metric/METRIC_NAME" \
   }
 }'
 ```
+
+## Sample Collector
+
+`sample.py` collects a sample from a device attached to a serial port:
+
+(for testing)
+
+* On MacOS: `/dev/cu.usbmodem21101`
