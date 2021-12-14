@@ -19,7 +19,7 @@ def metrics():
 
     for metric, labels in data.items():
         output.append('# HELP {0} {0}'.format(metric))
-        output.append('# TYPE {0} guage'.format(metric))
+        output.append('# TYPE {0} gauge'.format(metric))
 
         for label, value in labels.items():
             output.append('{metric}{{{label}}} {value}'.format(
