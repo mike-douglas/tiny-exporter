@@ -4,7 +4,6 @@ from flask import Flask, request
 app = Flask(__name__)
 
 labels = {
-    'host': 'raspberry-pi'
 }
 
 data = defaultdict(lambda: dict())
