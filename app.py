@@ -2,6 +2,7 @@ from collections import defaultdict
 from flask import Flask, request
 
 app = Flask(__name__)
+app.logger.setLevel('INFO')
 
 labels = {
 }
@@ -36,7 +37,10 @@ def save_reading(metric):
     all_labels.update(labels)
 
     label = labels_to_string(all_labels)
+    value = request.json.get('value')
 
-    data[metric][label] = request.json.get('value')
+    data[metric][label] = value
+
+    app.logger.info(request.json)
 
     return 'OK'
