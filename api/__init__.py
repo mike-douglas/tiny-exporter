@@ -14,15 +14,20 @@ data = defaultdict(lambda: dict())
 gauges = defaultdict(lambda: dict())
 counters = defaultdict(lambda: defaultdict(lambda: 0))
 
-histogram_bucket = defaultdict(lambda: defaultdict(lambda: defaultdict(lambda: 0)))
+histogram_bucket = defaultdict(
+    lambda: defaultdict(
+        lambda: defaultdict(
+            lambda: 0)))
 histogram_sum = defaultdict(lambda: defaultdict(lambda: 0))
 histogram_count = defaultdict(lambda: defaultdict(lambda: 0))
 histogram_def = dict()
 
-def labels_to_string(l):
+
+def labels_to_string(labels):
     return ','.join([
-        '{}="{}"'.format(k, v) for k, v in l.items()
+        '{}="{}"'.format(k, v) for k, v in labels.items()
     ])
+
 
 @app.route('/metrics')
 def metrics():
@@ -58,12 +63,8 @@ def metrics():
         for label, bucket in labels.items():
             for bucket_label, value in bucket.items():
                 output.append('{metric}_bucket{{{label},{bucket}}} {value}'.format(
-                    metric=metric,
-                    label=label,
-                    bucket=bucket_label,
-                    value=value
-                ))
-        
+                    metric=metric, label=label, bucket=bucket_label, value=value))
+
             output.append('{metric}_sum{{{label}}} {value}'.format(
                 metric=metric,
                 label=label,
@@ -95,6 +96,7 @@ def save_gauge_reading(metric):
 
     return 'OK'
 
+
 @app.route('/api/v2/metric/counter/<metric>', methods=['POST'])
 def save_counter_reading(metric):
     '''Increment a counter metric with provided labels'''
@@ -108,6 +110,7 @@ def save_counter_reading(metric):
     app.logger.info(request.json)
 
     return 'OK'
+
 
 @app.route('/api/v2/metric/histogram/<metric>', methods=['POST'])
 def save_histogram_reading(metric):
@@ -129,11 +132,12 @@ def save_histogram_reading(metric):
 
             if bucket == '+Inf' or value <= bucket:
                 histogram_bucket[metric][label][bucket_label] += 1
-    
+
     else:
         return 'Error: buckets for metric {} have not been set'.format(metric)
 
     return 'OK'
+
 
 @app.route('/api/v2/metric/histogram/<metric>', methods=['PUT'])
 def create_or_update_histogram(metric):
