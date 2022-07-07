@@ -3,18 +3,18 @@ from collections import defaultdict
 from metrics import Metric, MetricType, labels_to_string
 
 
-class GaugeMetric(Metric):
+class CounterMetric(Metric):
     def __init__(self, name: str, labels: dict = {}, help: str = '') -> None:
         Metric.__init__(self, name, labels, help)
 
-        self.type = MetricType.Gauge
+        self.type = MetricType.Counter
         self.values = defaultdict(lambda: 0)
 
-    def record_value(self, value: int, labels: dict = {}) -> None:
+    def record_value(self, labels: dict = {}) -> None:
         labels_copy = self.labels.copy()
         labels_copy.update(labels)
 
-        self.values[labels_to_string(labels_copy)] = value
+        self.values[labels_to_string(labels_copy)] += 1
 
     def export(self) -> str:
         exported_lines = list()

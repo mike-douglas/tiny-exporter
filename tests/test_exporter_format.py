@@ -1,23 +1,4 @@
-import pytest
-from api import app as flask_app
-
-
-@pytest.fixture()
-def app():
-    app = flask_app
-    app.config.update(dict(TESTING=True))
-
-    yield app
-
-
-@pytest.fixture()
-def client(app):
-    return app.test_client()
-
-
-@pytest.fixture()
-def runner(app):
-    return app.test_cli_runner()
+import pytest  # noqa: F401
 
 
 def test_gauge_export(client):
@@ -28,7 +9,6 @@ def test_gauge_export(client):
 
     response = client.get('/metrics')
     assert '''
-# HELP foo foo
 # TYPE foo gauge
 foo{foo="bar"} 100
 '''.strip() in str(response.data, encoding='UTF8')
@@ -41,7 +21,6 @@ def test_counter_export(client):
 
     response = client.get('/metrics')
     assert '''
-# HELP foo foo
 # TYPE foo counter
 foo{foo="bar"} 1
 '''.strip() in str(response.data, encoding='UTF8')
@@ -52,7 +31,6 @@ foo{foo="bar"} 1
 
     response = client.get('/metrics')
     assert '''
-# HELP foo foo
 # TYPE foo counter
 foo{foo="bar"} 2
 '''.strip() in str(response.data, encoding='UTF8')
@@ -70,10 +48,26 @@ def test_histogram_export(client):
     response = client.get('/metrics')
     print(response.data)
     assert '''
-# HELP foo foo
 # TYPE foo histogram
 foo_bucket{foo="bar",le="1"} 0
 foo_bucket{foo="bar",le="2"} 0
 foo_bucket{foo="bar",le="300"} 1
 foo_bucket{foo="bar",le="+Inf"} 1
+foo_sum{foo="bar"} 100
+foo_count{foo="bar"} 1
+'''.strip() in str(response.data, encoding='UTF8')
+
+
+def test_metric_export_with_help(client):
+    client.put('/api/v2/metric/gauge/some_metric', json=dict(
+        help='Some Help Text'
+    ))
+    client.post('/api/v2/metric/gauge/some_metric', json=dict(
+        value=20
+    ))
+
+    response = client.get('/metrics')
+    assert '''
+# HELP some_metric Some Help Text
+# TYPE some_metric gauge
 '''.strip() in str(response.data, encoding='UTF8')
