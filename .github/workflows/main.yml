@@ -28,7 +28,6 @@ jobs:
     - name: Build and push Docker images
       uses: docker/build-push-action@v3.0.0
       with:
-        context: .
         push: true
         tags: mdouglas/sensor-exporter:latest
   
