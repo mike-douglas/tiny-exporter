@@ -1,4 +1,4 @@
-from collections import defaultdict, namedtuple
+from collections import defaultdict
 from flask import Flask, request
 
 app = Flask(__name__)
