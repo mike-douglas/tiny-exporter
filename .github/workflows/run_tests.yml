@@ -21,11 +21,15 @@ jobs:
       run: |
         pip install -r requirements.txt
         pip install .
-    
-    - name: Install pytest
+
+    - name: Install pytest and flake8
       run: |
         pip install pytest
-    
+
+    - name: Check syntax with flake8
+      run: |
+        flake8 --statistics --count --show-source --exclude=build --max-line-length=127
+
     - name: Test with pytest
       run: |
         pytest
