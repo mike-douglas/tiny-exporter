@@ -1,13 +1,13 @@
-name: Docker Image CI
+name: Publish image to Docker Hub
 
 on:
-  push:
-    branches: [ "main" ]
+  release:
+    types: [published]
 
 jobs:
 
-  build:
-
+  push_to_registry:
+    name: Push Docker image to Docker Hub
     runs-on: ubuntu-latest
 
     steps:
@@ -23,9 +23,16 @@ jobs:
         username: ${{ secrets.DOCKERHUB_USERNAME }}
         password: ${{ secrets.DOCKERHUB_TOKEN }}
 
+    - name: Extract metadata (tags, labels) for Docker
+      id: meta
+      uses: docker/metadata-action@98669ae865ea3cffbcbaa878cf57c20bbf1c6c38
+      with:
+        images: mdouglas/tiny-exporter
+
     - name: Build and push Docker images
       uses: docker/build-push-action@v3.0.0
       with:
         push: true
-        tags: mdouglas/tiny-exporter:latest
+        tags: ${{ steps.meta.outputs.tags }}
+        labels: ${{ steps.meta.output.labels }}
   
