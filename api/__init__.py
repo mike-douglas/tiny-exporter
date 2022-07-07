@@ -1,6 +1,8 @@
 from collections import defaultdict
 from flask import Flask, request
 
+from metrics import labels_to_string
+
 app = Flask(__name__)
 app.logger.setLevel('INFO')
 
@@ -21,13 +23,6 @@ histogram_bucket = defaultdict(
 histogram_sum = defaultdict(lambda: defaultdict(lambda: 0))
 histogram_count = defaultdict(lambda: defaultdict(lambda: 0))
 histogram_def = dict()
-
-
-def labels_to_string(labels):
-    return ','.join([
-        '{}="{}"'.format(k, v) for k, v in labels.items()
-    ])
-
 
 @app.route('/metrics')
 def metrics():
