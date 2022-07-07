@@ -24,7 +24,7 @@ jobs:
 
     - name: Install pytest and flake8
       run: |
-        pip install pytest
+        pip install pytest flake8
 
     - name: Check syntax with flake8
       run: |
