@@ -17,7 +17,7 @@ The easiest way to use this is with the Docker image at [mdouglas/tiny-exporter]
 For local development or to run it yourself, it's simply a [Flask][] app. Run it with:
 
 ```bash
-flask run
+FLASK_APP=api flask run
 ```
 
 ## Documentation
