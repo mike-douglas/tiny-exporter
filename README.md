@@ -1,38 +1,36 @@
-# sensor-exporter
+# tiny-exporter
 
-This is a small Python flask API for exporting guage metrics. The API also can record metrics
+Tiny exporter is a lightweight RESTful API for collecting metrics that can be exported to [Prometheus][].
+
+It supports storing [gauge][], [counter][], and [histogram][] metrics with labels.
+
+## Example Uses
+
+* A metrics collection and export agent for IoT devices
+* A sidecar to an app that wants to collect metrics
+* A lightweight metrics agent and exporter for a k8s cluster
 
 ## Running
+
+The easiest way to use this is with the Docker image at [mdouglas/tiny-exporter][].
+
+For local development or to run it yourself, it's simply a [Flask][] app. Run it with:
 
 ```bash
 flask run
 ```
 
-## API
+## Documentation
 
-Exporting metrics:
+Documentation coming soon.
 
-```bash
-curl "http://localhost:5000/metrics"
-```
+## License
 
-Posting metrics:
+See [LICENSE](LICENSE.txt)
 
-```bash
-curl -X "POST" "http://localhost:5000/api/v1/metric/METRIC_NAME" \
-     -H 'Content-Type: application/json; charset=utf-8' \
-     -d $'{
-  "value": 1234,
-  "labels": {
-    "sensor": "01234"
-  }
-}'
-```
-
-## Sample Collector
-
-`sample.py` collects a sample from a device attached to a serial port:
-
-(for testing)
-
-* On MacOS: `/dev/cu.usbmodem21101`
+[gauge]: https://prometheus.io/docs/concepts/metric_types/#gauge
+[counter]: https://prometheus.io/docs/concepts/metric_types/#counter
+[histogram]: https://prometheus.io/docs/concepts/metric_types/#histogram
+[Flask]: https://flask.palletsprojects.com
+[mdouglas/tiny-exporter]: https://hub.docker.com/mdouglas/tiny-exporter
+[Prometheus]: https://prometheus.io/

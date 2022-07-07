@@ -3,8 +3,6 @@ name: Docker Image CI
 on:
   push:
     branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
 
 jobs:
 
@@ -29,5 +27,5 @@ jobs:
       uses: docker/build-push-action@v3.0.0
       with:
         push: true
-        tags: mdouglas/sensor-exporter:latest
+        tags: mdouglas/tiny-exporter:latest
   
