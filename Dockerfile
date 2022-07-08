@@ -5,9 +5,8 @@ WORKDIR /app
 
 ADD . .
 
-RUN pip install -r requirements.txt
-RUN pip install .
+RUN pip install -r requirements.txt && \
+    pip install waitress && \
+    pip install .
 
-ENV FLASK_APP=api
-
-ENTRYPOINT [ "flask", "run", "-h", "0.0.0.0" ]
+ENTRYPOINT [ "waitress-serve", "--port=5000", "--call", "api:create_app" ]
