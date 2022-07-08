@@ -1,11 +1,11 @@
-name: Run pytests
+name: Run all tests
 
 on: [push, pull_request]
 
 jobs:
 
   test:
-    name: Run all tests
+    name: Run pytest and flake8
     runs-on: ubuntu-latest
 
     steps:

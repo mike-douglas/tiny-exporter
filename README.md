@@ -1,5 +1,10 @@
 # tiny-exporter
 
+[![Release](https://img.shields.io/github/release/mike-douglas/tiny-exporter.svg?style=flat-square)](https://github.com/mike-douglas/tiny-exporter/releases/latest)
+![All Tests](https://github.com/mike-douglas/tiny-exporter/actions/workflows/run_tests.yml/badge.svg?branch=main)
+[![GitHub issues](https://img.shields.io/github/issues/mike-douglas/tiny-exporter)](https://github.com/mike-douglas/tiny-exporter/issues)
+[![GitHub license](https://img.shields.io/github/license/mike-douglas/tiny-exporter)](https://github.com/mike-douglas/tiny-exporter/blob/main/LICENSE.txt)
+
 Tiny exporter is a lightweight RESTful API for collecting metrics that can be exported to [Prometheus][].
 
 It supports storing [gauge][], [counter][], and [histogram][] metrics with labels.
@@ -30,7 +35,7 @@ FLASK_APP=api flask run
 
 ## Documentation
 
-Documentation coming soon.
+Documentation can be found at the [wiki](https://github.com/mike-douglas/tiny-exporter/wiki).
 
 ## License
 
