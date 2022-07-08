@@ -1,149 +1,111 @@
-from collections import defaultdict
-from flask import Flask, request
+from flask import Flask, Blueprint, request, current_app
 
-app = Flask(__name__)
-app.logger.setLevel('INFO')
+from metrics import MetricType, gauge, histogram, counter
 
-# Default labels for this exporter
-labels = {
-}
-
-data = defaultdict(lambda: dict())
-
-# Data storage
-gauges = defaultdict(lambda: dict())
-counters = defaultdict(lambda: defaultdict(lambda: 0))
-
-histogram_bucket = defaultdict(
-    lambda: defaultdict(
-        lambda: defaultdict(
-            lambda: 0)))
-histogram_sum = defaultdict(lambda: defaultdict(lambda: 0))
-histogram_count = defaultdict(lambda: defaultdict(lambda: 0))
-histogram_def = dict()
+exporter = Blueprint('exporter', __name__)
+v1_api = Blueprint('v1_api', __name__)
+v2_api = Blueprint('v2_api', __name__)
 
 
-def labels_to_string(labels):
-    return ','.join([
-        '{}="{}"'.format(k, v) for k, v in labels.items()
-    ])
+def create_app() -> Flask:
+    app = Flask(__name__)
+
+    app.logger.setLevel('INFO')
+
+    app.register_blueprint(exporter)
+    app.register_blueprint(v2_api, url_prefix='/api/v2')
+    app.register_blueprint(v1_api, url_prefix='/api/v1')
+
+    with app.app_context():
+        current_app.gauges = dict()
+        current_app.counters = dict()
+        current_app.histograms = dict()
+
+    return app
 
 
-@app.route('/metrics')
+supported_metrics = [
+    MetricType.Counter,
+    MetricType.Histogram,
+    MetricType.Gauge
+]
+
+
+@exporter.route('/metrics')
 def metrics():
     '''Export metrics for Prometheus'''
     output = []
 
-    for metric, labels in gauges.items():
-        output.append('# HELP {0} {0}'.format(metric))
-        output.append('# TYPE {0} gauge'.format(metric))
-
-        for label, value in labels.items():
-            output.append('{metric}{{{label}}} {value}'.format(
-                metric=metric,
-                label=label,
-                value=value
-            ))
-
-    for metric, labels in counters.items():
-        output.append('# HELP {0} {0}'.format(metric))
-        output.append('# TYPE {0} counter'.format(metric))
-
-        for label, value in labels.items():
-            output.append('{metric}{{{label}}} {value}'.format(
-                metric=metric,
-                label=label,
-                value=value
-            ))
-
-    for metric, labels in histogram_bucket.items():
-        output.append('# HELP {0} {0}'.format(metric))
-        output.append('# TYPE {0} histogram'.format(metric))
-
-        for label, bucket in labels.items():
-            for bucket_label, value in bucket.items():
-                output.append('{metric}_bucket{{{label},{bucket}}} {value}'.format(
-                    metric=metric, label=label, bucket=bucket_label, value=value))
-
-            output.append('{metric}_sum{{{label}}} {value}'.format(
-                metric=metric,
-                label=label,
-                value=histogram_sum[metric][label]
-            ))
-
-            output.append('{metric}_count{{{label}}} {value}'.format(
-                metric=metric,
-                label=label,
-                value=histogram_count[metric][label]
-            ))
+    for group in [current_app.gauges.values(), current_app.counters.values(),
+                  current_app.histograms.values()]:
+        for metric in group:
+            output.append(metric.export_header())
+            output.append(metric.export())
 
     return '\n'.join(output)
 
 
-@app.route('/api/v1/metric/<metric>', methods=['POST'])
-@app.route('/api/v2/metric/gauge/<metric>', methods=['POST'])
-def save_gauge_reading(metric):
-    '''Record a value for a gauge metric with provided labels'''
-    all_labels = request.json.get('labels', dict())
-    all_labels.update(labels)
+@v1_api.route('/metric/<metric>', methods=['POST'])
+def save_gauge_metric(metric):
+    return save_reading(MetricType.Gauge, metric)
 
-    label = labels_to_string(all_labels)
+
+@v2_api.route('/metric/<metric_type>/<metric>', methods=['POST'])
+def save_reading(metric_type, metric):
+    '''Save a reading for a metric'''
+    labels = request.json.get('labels', dict())
     value = request.json.get('value')
 
-    gauges[metric][label] = value
+    if metric_type == MetricType.Counter:
+        if metric not in current_app.counters:
+            current_app.counters[metric] = counter.CounterMetric(metric)
 
-    app.logger.info(request.json)
+        current_app.counters[metric].record_value(labels=labels)
+    elif metric_type == MetricType.Gauge:
+        if metric not in current_app.gauges:
+            current_app.gauges[metric] = gauge.GaugeMetric(metric)
 
-    return 'OK'
+        current_app.gauges[metric].record_value(value, labels=labels)
+    elif metric_type == MetricType.Histogram:
+        if metric not in current_app.histograms:
+            current_app.histograms[metric] = histogram.HistogramMetric(metric)
 
-
-@app.route('/api/v2/metric/counter/<metric>', methods=['POST'])
-def save_counter_reading(metric):
-    '''Increment a counter metric with provided labels'''
-    all_labels = request.json.get('labels', dict())
-    all_labels.update(labels)
-
-    label = labels_to_string(all_labels)
-
-    counters[metric][label] += 1
-
-    app.logger.info(request.json)
-
-    return 'OK'
-
-
-@app.route('/api/v2/metric/histogram/<metric>', methods=['POST'])
-def save_histogram_reading(metric):
-    '''Increment a historgram bucket given a value with provided labels'''
-    all_labels = request.json.get('labels', dict())
-    all_labels.update(labels)
-
-    value = request.json.get('value')
-
-    if metric in histogram_def.keys():
-        label = labels_to_string(all_labels)
-        histogram_count[metric][label] += 1
-        histogram_sum[metric][label] += value
-
-        for bucket in histogram_def[metric]:
-            bucket_label = labels_to_string(dict(le=str(bucket)))
-
-            histogram_bucket[metric][label][bucket_label]
-
-            if bucket == '+Inf' or value <= bucket:
-                histogram_bucket[metric][label][bucket_label] += 1
-
+        current_app.histograms[metric].record_value(value, labels=labels)
     else:
-        return 'Error: buckets for metric {} have not been set'.format(metric)
+        return 'Unsupported metric type (valid types are: {})'.format(
+            ', '.join(supported_metrics)), 400
 
     return 'OK'
 
 
-@app.route('/api/v2/metric/histogram/<metric>', methods=['PUT'])
-def create_or_update_histogram(metric):
-    '''Set the buckets for a histogram metric'''
-    buckets = request.json.get('buckets')
+@v2_api.route('/metric/<metric_type>/<metric>', methods=['PUT'])
+def create_or_replace(metric_type, metric):
+    '''Resets the data in a metric and recreates it'''
+    labels = request.json.get('labels', dict())
+    help = request.json.get('help', '')
 
-    histogram_def[metric] = buckets
+    if metric_type == MetricType.Counter:
+        current_app.counters[metric] = counter.CounterMetric(
+            metric,
+            labels=labels,
+            help=help
+        )
+    elif metric_type == MetricType.Gauge:
+        current_app.gauges[metric] = gauge.GaugeMetric(
+            metric,
+            labels=labels,
+            help=help
+        )
+    elif metric_type == MetricType.Histogram:
+        buckets = request.json.get('buckets', [])
+        current_app.histograms[metric] = histogram.HistogramMetric(
+            metric,
+            buckets=buckets,
+            labels=labels,
+            help=help
+        )
+    else:
+        'Unsupported metric type (valid types are: {})'.format(
+            ', '.join(supported_metrics)), 400
 
     return 'OK'
