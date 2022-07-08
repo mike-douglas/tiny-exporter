@@ -6,5 +6,5 @@ setup(name='tiny-exporter',
       author='Mike Douglas',
       author_email='foo',
       url='https://github.com/mike-douglas/tiny-exporter',
-      packages=['api'],
+      packages=['api', 'metrics'],
       )
