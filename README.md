@@ -14,6 +14,14 @@ It supports storing [gauge][], [counter][], and [histogram][] metrics with label
 
 The easiest way to use this is with the Docker image at [mdouglas/tiny-exporter][].
 
+### Running with Docker
+
+```bash
+docker run -d -p 5000:9800 mdouglas/tiny-exporter:latest
+```
+
+### Local Development / Running Manually
+
 For local development or to run it yourself, it's simply a [Flask][] app. Run it with:
 
 ```bash
@@ -26,11 +34,12 @@ Documentation coming soon.
 
 ## License
 
-See [LICENSE](LICENSE.txt)
+See [LICENSE][]
 
 [gauge]: https://prometheus.io/docs/concepts/metric_types/#gauge
 [counter]: https://prometheus.io/docs/concepts/metric_types/#counter
 [histogram]: https://prometheus.io/docs/concepts/metric_types/#histogram
 [Flask]: https://flask.palletsprojects.com
-[mdouglas/tiny-exporter]: https://hub.docker.com/mdouglas/tiny-exporter
+[mdouglas/tiny-exporter]: https://hub.docker.com/r/mdouglas/tiny-exporter
 [Prometheus]: https://prometheus.io/
+[LICENSE]: https://github.com/mike-douglas/tiny-exporter/blob/main/LICENSE.txt
