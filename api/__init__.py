@@ -1,3 +1,4 @@
+from typing import Tuple
 from flask import Flask, Blueprint, request, current_app
 
 from metrics import MetricType, gauge, histogram, counter
@@ -31,8 +32,17 @@ supported_metrics = [
 ]
 
 
+def json_response(message: any, status_code: int) -> Tuple[dict, int]:
+    if status_code >= 200 and status_code < 300:
+        return dict(status='OK', result=message), status_code
+    elif status_code >= 400 and status_code < 600:
+        return dict(status='error', result=message), status_code
+    else:
+        return dict(status='unspecified', result=message), status_code
+
+
 @exporter.route('/metrics')
-def metrics():
+def metrics() -> str:
     '''Export metrics for Prometheus'''
     output = []
 
@@ -46,12 +56,12 @@ def metrics():
 
 
 @v1_api.route('/metric/<metric>', methods=['POST'])
-def save_gauge_metric(metric):
+def save_gauge_metric(metric: str) -> Tuple[dict, int]:
     return save_reading(MetricType.Gauge, metric)
 
 
 @v2_api.route('/metric/<metric_type>/<metric>', methods=['POST'])
-def save_reading(metric_type, metric):
+def save_reading(metric_type: str, metric: str) -> Tuple[dict, int]:
     '''Save a reading for a metric'''
     labels = request.json.get('labels', dict())
     value = request.json.get('value')
@@ -72,14 +82,18 @@ def save_reading(metric_type, metric):
 
         current_app.histograms[metric].record_value(value, labels=labels)
     else:
-        return 'Unsupported metric type (valid types are: {})'.format(
-            ', '.join(supported_metrics)), 400
+        return json_response(
+                    'Unsupported metric type (valid types are: {})'.format(
+                        ', '.join(supported_metrics)
+                    ),
+                    400
+                )
 
-    return 'OK'
+    return json_response('Saved', 200)
 
 
 @v2_api.route('/metric/<metric_type>/<metric>', methods=['PUT'])
-def create_or_replace(metric_type, metric):
+def create_or_replace(metric_type: str, metric: str) -> Tuple[dict, int]:
     '''Resets the data in a metric and recreates it'''
     labels = request.json.get('labels', dict())
     help = request.json.get('help', '')
@@ -105,7 +119,11 @@ def create_or_replace(metric_type, metric):
             help=help
         )
     else:
-        'Unsupported metric type (valid types are: {})'.format(
-            ', '.join(supported_metrics)), 400
+        return json_response(
+                    'Unsupported metric type (valid types are: {})'.format(
+                        ', '.join(supported_metrics)
+                    ),
+                    400
+                )
 
-    return 'OK'
+    return json_response('Created', 201)

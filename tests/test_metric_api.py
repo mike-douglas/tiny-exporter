@@ -8,7 +8,6 @@ def test_save_gauge_reading_label(client):
     ))
 
     assert response.status_code == 200
-    assert response.data == b'OK'
 
 
 def test_save_gauge_reading_no_label(client):
@@ -17,7 +16,6 @@ def test_save_gauge_reading_no_label(client):
     ))
 
     assert response.status_code == 200
-    assert response.data == b'OK'
 
 
 def test_save_counter_reading_label(client):
@@ -27,7 +25,6 @@ def test_save_counter_reading_label(client):
     ))
 
     assert response.status_code == 200
-    assert response.data == b'OK'
 
 
 def test_save_counter_reading_nolabel(client):
@@ -36,7 +33,6 @@ def test_save_counter_reading_nolabel(client):
     ))
 
     assert response.status_code == 200
-    assert response.data == b'OK'
 
 
 def test_save_histogram_reading_label(client):
@@ -50,7 +46,6 @@ def test_save_histogram_reading_label(client):
     ))
 
     assert response.status_code == 200
-    assert response.data == b'OK'
 
 
 def test_save_histogram_reading_nolabel(client):
@@ -59,4 +54,28 @@ def test_save_histogram_reading_nolabel(client):
     ))
 
     assert response.status_code == 200
-    assert response.data == b'OK'
+
+
+def test_configure_gauge_help_text(client):
+    response = client.put('/api/v2/metric/gauge/temp', json=dict(
+        help='Temperature'
+    ))
+
+    assert response.status_code == 201
+
+
+def test_configure_gauge_labels(client):
+    response = client.put('/api/v2/metric/gauge/temp', json=dict(
+        labels=dict(room='office')
+    ))
+
+    assert response.status_code == 201
+
+
+def test_configure_histogram_buckets(client):
+    response = client.put('/api/v2/metric/histogram/delivery_time', json=dict(
+        buckets=[120, 600, 1200, 2400, '+Inf']
+    ))
+
+    assert response.status_code == 201
+
