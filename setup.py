@@ -1,7 +1,7 @@
 from distutils.core import setup
 
 setup(name='tiny-exporter',
-      version='1.0.0',
+      version='1.1.0',
       description='',
       author='Mike Douglas',
       author_email='foo',
