@@ -83,11 +83,11 @@ def save_reading(metric_type: str, metric: str) -> Tuple[dict, int]:
         current_app.histograms[metric].record_value(value, labels=labels)
     else:
         return json_response(
-                    'Unsupported metric type (valid types are: {})'.format(
-                        ', '.join(supported_metrics)
-                    ),
-                    400
-                )
+            'Unsupported metric type (valid types are: {})'.format(
+                ', '.join(supported_metrics)
+            ),
+            400
+        )
 
     return json_response('Saved', 200)
 
@@ -120,10 +120,10 @@ def create_or_replace(metric_type: str, metric: str) -> Tuple[dict, int]:
         )
     else:
         return json_response(
-                    'Unsupported metric type (valid types are: {})'.format(
-                        ', '.join(supported_metrics)
-                    ),
-                    400
-                )
+            'Unsupported metric type (valid types are: {})'.format(
+                ', '.join(supported_metrics)
+            ),
+            400
+        )
 
     return json_response('Created', 201)

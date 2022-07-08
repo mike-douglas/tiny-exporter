@@ -78,4 +78,3 @@ def test_configure_histogram_buckets(client):
     ))
 
     assert response.status_code == 201
-
